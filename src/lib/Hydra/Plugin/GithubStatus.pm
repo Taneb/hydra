@@ -57,7 +57,7 @@ sub common {
                     next if exists $seen{$input}->{$key};
                     $seen{$input}->{$key} = 1;
                     $uri =~ m![:/]([^/]+)/([^/]+?)(?:.git)?$!;
-                    if ($githubState eq "error" || $githubState eq "failure") {
+                    if ($githubState eq "error" || $githubState eq "failure" || $attrName eq "everything" || $attrName eq "lint") {
                       my $owner = $1;
                       my $repo = $2;
                       my $req = HTTP::Request->new('POST', "https://api.github.com/repos/$owner/$repo/statuses/$rev");
