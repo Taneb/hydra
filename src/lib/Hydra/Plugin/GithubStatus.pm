@@ -36,10 +36,9 @@ sub common {
             next if !$finished && $b->finished == 1;
 
             my $contextTrailer = $conf->{excludeBuildFromContext} ? "" : (":" . $b->id);
-            my $githubState = $finished ? toGithubState($b->buildstatus) : "pending";
             my $body = encode_json(
                 {
-                    state => $githubState,
+                    state => $finished ? toGithubState($b->buildstatus) : "pending",
                     target_url => "$baseurl/build/" . $b->id,
                     description => $conf->{description} // "Hydra build #" . $b->id . " of $jobName",
                     context => $conf->{context} // "continuous-integration/hydra:" . $jobName . $contextTrailer
@@ -57,17 +56,15 @@ sub common {
                     next if exists $seen{$input}->{$key};
                     $seen{$input}->{$key} = 1;
                     $uri =~ m![:/]([^/]+)/([^/]+?)(?:.git)?$!;
-                    if ($githubState != "success") {
-                      my $owner = $1;
-                      my $repo = $2;
-                      my $req = HTTP::Request->new('POST', "https://api.github.com/repos/$owner/$repo/statuses/$rev");
-                      $req->header('Content-Type' => 'application/json');
-                      $req->header('Accept' => 'application/vnd.github.v3+json');
-                      $req->header('Authorization' => ($self->{config}->{github_authorization}->{$owner} // $conf->{authorization}));
-                      $req->content($body);
-                      my $res = $ua->request($req);
-                      print STDERR $res->status_line, ": ", $res->decoded_content, "\n" unless $res->is_success;
-                    }
+                    my $owner = $1;
+                    my $repo = $2;
+                    my $req = HTTP::Request->new('POST', "https://api.github.com/repos/$owner/$repo/statuses/$rev");
+                    $req->header('Content-Type' => 'application/json');
+                    $req->header('Accept' => 'application/vnd.github.v3+json');
+                    $req->header('Authorization' => ($self->{config}->{github_authorization}->{$owner} // $conf->{authorization}));
+                    $req->content($body);
+                    my $res = $ua->request($req);
+                    print STDERR $res->status_line, ": ", $res->decoded_content, "\n" unless $res->is_success;
                 }
             }
         }
