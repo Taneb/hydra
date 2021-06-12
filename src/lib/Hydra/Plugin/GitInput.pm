@@ -141,13 +141,18 @@ sub fetchInput {
         die "error creating git repo in `$clonePath':\n$res->{stderr}" if $res->{status};
     }
 
+    # if the configuration has set a key file for git input to use, then we use it
+    my $sshkeyfile = $cfg->{sshkeyfile};
+    my %env = ("GIT_SSH_COMMAND", "ssh -i $sshkeyfile -o IdentitiesOnly=yes") if defined($sshkeyfile);
+
     # This command forces the update of the local branch to be in the same as
     # the remote branch for whatever the repository state is.  This command mirrors
     # only one branch of the remote repository.
     my $localBranch = _isHash($branch) ? "_hydra_tmp" : $branch;
     $res = run(cmd => ["git", "fetch", "-fu", "origin", "+$branch:$localBranch"], dir => $clonePath,
-               timeout => $cfg->{timeout});
-    $res = run(cmd => ["git", "fetch", "-fu", "origin"], dir => $clonePath, timeout => $cfg->{timeout}) if $res->{status};
+               timeout => $cfg->{timeout},
+               env => $env);
+    $res = run(cmd => ["git", "fetch", "-fu", "origin"], dir => $clonePath, timeout => $cfg->{timeout}, env => $env) if $res->{status};
     die "error fetching latest change from git repo at `$uri':\n$res->{stderr}" if $res->{status};
 
     # If deepClone is defined, then we look at the content of the repository
