@@ -151,8 +151,8 @@ sub fetchInput {
     my $localBranch = _isHash($branch) ? "_hydra_tmp" : $branch;
     $res = run(cmd => ["git", "fetch", "-fu", "origin", "+$branch:$localBranch"], dir => $clonePath,
                timeout => $cfg->{timeout},
-               env => $env);
-    $res = run(cmd => ["git", "fetch", "-fu", "origin"], dir => $clonePath, timeout => $cfg->{timeout}, env => $env) if $res->{status};
+               env => %env);
+    $res = run(cmd => ["git", "fetch", "-fu", "origin"], dir => $clonePath, timeout => $cfg->{timeout}, env => %env) if $res->{status};
     die "error fetching latest change from git repo at `$uri':\n$res->{stderr}" if $res->{status};
 
     # If deepClone is defined, then we look at the content of the repository
