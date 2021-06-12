@@ -366,7 +366,7 @@ sub run {
     my (%args) = @_;
     my $res = { stdout => "", stderr => "" };
     my $stdin = "";
-    print "running", @args->{cmd}, "\n";
+    print %args;
 
     eval {
         local $SIG{ALRM} = sub { die "timeout\n" }; # NB: \n required
